@@ -55,16 +55,20 @@ class IuseIndex extends React.Component {
       .then((res) => {
         // 类型2是文件，1是文件夹
         console.log(res.data);
-        console.log(res.data.children);
-        const oldPaths = localStorage.getItem('paths');
+
         if (res.data.type === 1) {
-          localStorage.setItem('paths', oldPaths + ',' + res.data.id)
+          const oldPaths = localStorage.getItem('paths');
+          console.log(oldPaths);
+          localStorage.setItem('paths', oldPaths + ',' + res.data.id);
+          console.log(localStorage.getItem('paths'));
+        } else {
+          alert('是否下载？');
         }
-        console.log(localStorage.getItem('paths'));
         _this.setState({
           isLoading: 0,
           fileArr: res.data.children
         })
+        console.log(this.state.fileArr);
       })
       .catch((err) => {
         console.log(err);
@@ -89,7 +93,7 @@ class IuseIndex extends React.Component {
         + userId + "/",
     })
       .then((res) => {
-        console.log(res.data);
+        // console.log(res.data);
         _this.setState({
           isLoading: 0,
           fileArr: res.data.children
@@ -141,20 +145,22 @@ class IuseIndex extends React.Component {
             <Header className="site-layout-background" style={{ padding: 0 }} />
             <Content style={{ margin: "0 16px" }}>
               <Breadcrumb style={{ margin: "16px 0" }}>
-                {/* 面包屑 */}
-                {/* <Breadcrumb.Item></Breadcrumb.Item> */}
+                {/* 面包屑 <Breadcrumb.Item></Breadcrumb.Item> */}
                 {
                   this.state.fileArr.map((item, index) => {
+                    // console.log('type = ' + item.type, 'id = ' + item.id, 'index = ' + index);
                     const breadPaths = localStorage.getItem('paths');
-                    console.log(breadPaths.split(','));
-                    console.log(breadPaths.split(',')[index]);
-                    return (
-                      <div className="breadItem" style={{ display: 'inline-block' }}>
-                        <Link to=''>
-                          <Breadcrumb.Item>{breadPaths[index]}</Breadcrumb.Item>
-                        </Link>
-                      </div>
-                    )
+                    if (breadPaths) {
+                      // console.log([breadPaths]);
+                      if ([breadPaths].length > 1) {
+
+                      }
+                      return (
+                        //   <Link to=''>
+                        <Breadcrumb.Item key={index} className="breadItem">{breadPaths[index]}</Breadcrumb.Item>
+                        // </Link>
+                      )
+                    }
                   })
                 }
               </Breadcrumb>
@@ -167,6 +173,10 @@ class IuseIndex extends React.Component {
                   minHeight: 360,
                 }}
               >
+                <div className="createFile">
+                  {/* api/sources/id/create_dir/ 用post请求 代表文件夹名 这个id是当前文件夹的id */}
+                  创建文件夹
+                </div>
                 {this.state.fileArr.map((item, index) => {
                   // console.log(item);
                   // console.log(this.state);
