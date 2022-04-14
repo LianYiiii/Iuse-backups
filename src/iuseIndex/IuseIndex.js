@@ -18,7 +18,7 @@ import { Modal, Button } from 'antd';
 
 const { Header, Content, Footer, Sider } = Layout;
 const { SubMenu } = Menu;
-const AddFile = () => {
+const AddFile = (props) => {
   const [visible, setVisible] = React.useState(false);
   const [confirmLoading, setConfirmLoading] = React.useState(false);
   const [filename, setFilename] = useState('123');
@@ -41,15 +41,20 @@ const AddFile = () => {
 
     // setFilename(filenameRef.current.value);
     const inputVal = filenameRef.current.value;
+    const sourceId = localStorage.getItem('source_id')
     axios({
       headers: {
         Authorization: localStorage.getItem('token'),
       },
       method: "post",
-      url: 'http://10.0.1.119:8000/api/sources/' + localStorage.getItem('source_id') + '/create_dir/',
-      name: inputVal
+      url: 'http://10.0.1.119:8000/api/sources/' + sourceId + '/create_dir/',
+      data: {
+        "name": inputVal
+      }
     }).then(res => {
       console.log(res);
+      console.log(props);
+      props = { fileCount: props.fileCount + 1 }
     }).catch(err => {
       console.log(err);
     })
@@ -86,7 +91,8 @@ class IuseIndex extends React.Component {
     super(props);
     this.state = {
       isLoading: 1,
-      fileArr: []
+      fileArr: [],
+      filecount: 0
     };
     this.handleClick = this.handleClick.bind(this);
     this.addNewFile = this.addNewFile.bind(this);
@@ -228,7 +234,7 @@ class IuseIndex extends React.Component {
           </Sider>
           <Layout className="site-layout">
             <Header className="site-layout-background" style={{ padding: '10px', display: 'flex' }} >
-              <AddFile />
+              <AddFile fileCount={this.state.filecount} />
             </Header>
             <Content style={{ margin: "0 16px" }}>
               <Breadcrumb style={{ margin: "16px 0" }}>
@@ -243,9 +249,7 @@ class IuseIndex extends React.Component {
 
                       }
                       return (
-                        //   <Link to=''>
                         <Breadcrumb.Item key={index} className="breadItem">{breadPaths[index]}</Breadcrumb.Item>
-                        // </Link>
                       )
                     }
                   })
@@ -260,12 +264,7 @@ class IuseIndex extends React.Component {
                   minHeight: 360,
                 }}
               >
-                {/* <div className="createFile" onClick={this.addNewFile}> */}
                 {/* http://10.0.1.119:8000/api/sources/id/create_dir/ 用post请求 代表文件夹名 这个id是当前文件夹的id */}
-                {/* <div>新建文件夹</div>
-
-                  <PlusOutlined />
-                </div> */}
                 {this.state.fileArr.map((item, index) => {
                   // console.log(item);
                   // console.log(this.state);
