@@ -1,5 +1,5 @@
-import React, { useState, useEffect, Fragment } from "react";
-import { Layout, Menu, Breadcrumb } from "antd";
+import React, { useState, useEffect, Fragment, useRef } from "react";
+import { Layout, Menu, Breadcrumb, Divider } from "antd";
 import { Link } from "react-router-dom";
 import {
   DesktopOutlined,
@@ -7,15 +7,79 @@ import {
   FileOutlined,
   TeamOutlined,
   UserOutlined,
+  PlusOutlined,
+  CloseOutlined
 } from "@ant-design/icons";
 import "./IuseIndex.css";
 import PerFile from "../perFile/PerFile";
 import axios from "axios";
+import styled from 'styled-components'
+import { Modal, Button } from 'antd';
 
 const { Header, Content, Footer, Sider } = Layout;
 const { SubMenu } = Menu;
-// var fileArr = [];
+const AddFile = () => {
+  const [visible, setVisible] = React.useState(false);
+  const [confirmLoading, setConfirmLoading] = React.useState(false);
+  const [filename, setFilename] = useState('123');
+  const filenameRef = useRef(null);
+  // const [modalText, setModalText] = React.useState('Content of the modal');
 
+  const showModal = () => {
+    setVisible(true);
+  };
+
+
+
+  const handleOk = () => {
+    // setModalText('请稍等...');
+    setConfirmLoading(true);
+    setTimeout(() => {
+      setVisible(false);
+      setConfirmLoading(false);
+    }, 2000);
+
+    // setFilename(filenameRef.current.value);
+    const inputVal = filenameRef.current.value;
+    axios({
+      headers: {
+        Authorization: localStorage.getItem('token'),
+      },
+      method: "post",
+      url: 'http://10.0.1.119:8000/api/sources/' + localStorage.getItem('source_id') + '/create_dir/',
+      name: inputVal
+    }).then(res => {
+      console.log(res);
+    }).catch(err => {
+      console.log(err);
+    })
+
+    console.log(inputVal);
+  };
+
+  const handleCancel = () => {
+    console.log('Clicked cancel button');
+    setVisible(false);
+  };
+
+
+  return (
+    <>
+      <Button onClick={showModal} className='createfile'>
+        新建文件夹
+      </Button>
+      <Modal
+        title="新建文件夹"
+        visible={visible}
+        onOk={handleOk}
+        confirmLoading={confirmLoading}
+        onCancel={handleCancel}
+      >
+        <input style={{ width: '70%', height: '30px', margin: '5px auto' }} ref={filenameRef}></input>
+      </Modal>
+    </>
+  );
+};
 // 主页面组件
 class IuseIndex extends React.Component {
   constructor(props) {
@@ -25,6 +89,7 @@ class IuseIndex extends React.Component {
       fileArr: []
     };
     this.handleClick = this.handleClick.bind(this);
+    this.addNewFile = this.addNewFile.bind(this);
   }
 
   state = {
@@ -76,6 +141,20 @@ class IuseIndex extends React.Component {
 
   };
 
+  // 添加一个提示框
+
+
+  addHint = () => {
+
+  }
+
+  removeHint = () => {
+
+  }
+
+  addNewFile = () => {
+  }
+
 
   componentDidMount() {
     // 发送请求
@@ -105,7 +184,7 @@ class IuseIndex extends React.Component {
   }
 
   componentDidUpdate() {
-    console.log("重新render");
+    // console.log("重新render");
   }
 
   render() {
@@ -118,6 +197,12 @@ class IuseIndex extends React.Component {
       const { collapsed } = this.state;
       return (
         <Layout style={{ minHeight: "100vh" }}>
+          {/* <div className="hint">
+            <span><CloseOutlined /></span>
+            <input name="fileName" placeholder="请输入新建的文件夹名称"></input>
+            <button>添加文件夹</button>
+          </div> */}
+
           <Sider collapsible collapsed={collapsed} onCollapse={this.onCollapse}>
             <div className="logo" />
             <Menu theme="dark" defaultSelectedKeys={["1"]} mode="inline">
@@ -142,7 +227,9 @@ class IuseIndex extends React.Component {
             </Menu>
           </Sider>
           <Layout className="site-layout">
-            <Header className="site-layout-background" style={{ padding: 0 }} />
+            <Header className="site-layout-background" style={{ padding: '10px', display: 'flex' }} >
+              <AddFile />
+            </Header>
             <Content style={{ margin: "0 16px" }}>
               <Breadcrumb style={{ margin: "16px 0" }}>
                 {/* 面包屑 <Breadcrumb.Item></Breadcrumb.Item> */}
@@ -173,10 +260,12 @@ class IuseIndex extends React.Component {
                   minHeight: 360,
                 }}
               >
-                <div className="createFile">
-                  {/* api/sources/id/create_dir/ 用post请求 代表文件夹名 这个id是当前文件夹的id */}
-                  创建文件夹
-                </div>
+                {/* <div className="createFile" onClick={this.addNewFile}> */}
+                {/* http://10.0.1.119:8000/api/sources/id/create_dir/ 用post请求 代表文件夹名 这个id是当前文件夹的id */}
+                {/* <div>新建文件夹</div>
+
+                  <PlusOutlined />
+                </div> */}
                 {this.state.fileArr.map((item, index) => {
                   // console.log(item);
                   // console.log(this.state);
