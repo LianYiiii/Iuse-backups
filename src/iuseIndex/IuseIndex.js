@@ -22,12 +22,16 @@ class IuseIndex extends React.Component {
     this.state = {
       isLoading: 1,
       fileArr: [],
-      filecount: 0
+      filecount: 0,
+      visible: false
     };
     this.handleClick = this.handleClick.bind(this);
-    this.addNewFile = this.addNewFile.bind(this);
+    // this.addNewFile = this.addNewFile.bind(this);
+    this.handleContextMenu = this.handleContextMenu.bind(this);
   }
 
+
+  // 这中间都是自定义函数
   state = {
     collapsed: false,
   };
@@ -77,22 +81,19 @@ class IuseIndex extends React.Component {
 
   };
 
-  // 添加一个提示框
-
-
-  addHint = () => {
-
-  }
-
-  removeHint = () => {
-
-  }
-
-  addNewFile = () => {
+  handleContextMenu = (e) => {
+    e.preventDefault();
   }
 
 
+  // 页面加载
   componentDidMount() {
+    // 添加监听，实现右击
+    // 在组件中可以显示（visible=true），点击其它地方或滚动不可显示（设为false）
+    document.addEventListener('contextmenu', this.handleContextMenu);
+    // document.addEventListener('click', this._handleClick);
+    // document.addEventListener('scroll', this._handleScroll);
+
     // 发送请求
     const _this = this;
 
@@ -131,6 +132,7 @@ class IuseIndex extends React.Component {
     } else {
 
       const { collapsed } = this.state;
+      const { visible } = this.state;
       return (
         <Layout style={{ minHeight: "100vh" }}>
           {/* <div className="hint">
@@ -199,7 +201,7 @@ class IuseIndex extends React.Component {
                   // console.log(item);
                   // console.log(this.state);
                   return (
-                    <div key={'div' + item.id} className="every-file" onClick={this.handleClick}>
+                    <div key={'div' + item.id} className="every-file" onClick={this.handleClick} onContextMenu={e => { this.handleContextMenu(e) }}>
                       <PerFile
                         key={item.id}
                         fileName={item.name}
@@ -211,6 +213,10 @@ class IuseIndex extends React.Component {
 
                   )
                 })}
+                {visible ?
+                  <div ref={ref => { this.root = ref }} className="contextMenu">
+                    <div></div>
+                  </div> : null}
               </div>
             </Content>
             <Footer style={{ textAlign: "center" }}>
@@ -220,6 +226,11 @@ class IuseIndex extends React.Component {
         </Layout>
       );
     }
+  };
+
+  // 卸载组件
+  componentWillUnmount() {
+    document.removeEventListener();
   }
 }
 
