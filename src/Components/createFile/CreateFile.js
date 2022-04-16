@@ -4,20 +4,17 @@ import { message } from "antd";
 import axios from "axios";
 
 const AddFile = (props) => {
+    // console.log(props);
     const [visible, setVisible] = React.useState(false);
     const [confirmLoading, setConfirmLoading] = React.useState(false);
     const [filename, setFilename] = useState('123');
     const filenameRef = useRef(null);
-    // const [modalText, setModalText] = React.useState('Content of the modal');
 
     const showModal = () => {
         setVisible(true);
     };
 
-
-
     const handleOk = () => {
-        // setModalText('请稍等...');
         if (!filenameRef.current.value) {
             message.error('输入值为空！');
         } else {
@@ -27,28 +24,29 @@ const AddFile = (props) => {
                 setConfirmLoading(false);
             }, 2000);
 
-            // setFilename(filenameRef.current.value);
             const inputVal = filenameRef.current.value;
-            const sourceId = localStorage.getItem('source_id');
+            const source_id = props._this.state.pathStack.pop();
+            props._this.state.pathStack.push(source_id);
             axios({
                 headers: {
                     Authorization: localStorage.getItem('token'),
                 },
                 method: "post",
-                url: 'http://10.0.1.119:8000/api/sources/' + sourceId + '/create_dir/',
+                url:
+                    //  'http://10.0.1.119:8000/api/sources/'
+                    'http://192.168.2.110:8000/api/sources/'
+                    + source_id + '/create_dir/',
                 data: {
                     "name": inputVal
                 }
             }).then(res => {
                 console.log(res);
                 console.log(props);
-                props = { fileCount: props.fileCount + 1 }
+                props.ajaxRequest(props._this);
             }).catch(err => {
                 console.log(err);
             })
-
-            console.log(inputVal);
-
+            // console.log(inputVal);
         }
     };
 

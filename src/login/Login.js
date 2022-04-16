@@ -23,12 +23,11 @@ class NormalLoginForm extends React.Component {
 
     axios
       .post(
-        'http://10.0.1.119:8000/api/accounts/login/',
-        // "http://192.168.2.110:8000/api/accounts/login/",
+        // 'http://10.0.1.119:8000/api/accounts/login/',
+        "http://192.168.2.110:8000/api/accounts/login/",
         inputInfo
       )
       .then((res) => {
-        // if (result.status === 200 || result.status === 304) {
         message.success("welcome");
         // 验证数据
         console.log(res.data);
@@ -38,8 +37,6 @@ class NormalLoginForm extends React.Component {
         localStorage.setItem("paths", [res.data.source_id]);
         console.log(res.data.token);
         console.log(res.data.source_id);
-        // console.log(localStorage.getItem("paths"));
-        // console.log(typeof localStorage.getItem("paths"));
         this.setState({ user: user_id });
       })
       .catch((err) => {

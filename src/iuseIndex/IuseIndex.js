@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Fragment, useRef } from "react";
+import React, { useState, useEffect, Fragment, useRef, useId } from "react";
 import { Layout, Menu, Breadcrumb, Divider, message } from "antd";
 import {
   DesktopOutlined,
@@ -19,19 +19,18 @@ const { SubMenu } = Menu;
 class IuseIndex extends React.Component {
   constructor(props) {
     super(props);
+    const paths = localStorage.getItem('paths');
     this.state = {
       isLoading: 1,
       fileArr: [],
       filecount: 0,
-      visible: false
+      visible: false,
+      pathStack: [paths]
     };
     this.handleClick = this.handleClick.bind(this);
-    // this.addNewFile = this.addNewFile.bind(this);
-    this.handleContextMenu = this.handleContextMenu.bind(this);
   }
 
-
-  // 这中间都是自定义函数
+  // ---------------------------------------  这中间都是自定义函数  ---------------------------------------------
   state = {
     collapsed: false,
   };
@@ -41,106 +40,69 @@ class IuseIndex extends React.Component {
     this.setState({ collapsed });
   };
 
-  handleClick = () => {
+  handleClick = (id) => {
     const _this = this;
+    _this.state.pathStack.push(id)
     _this.setState({
       isLoading: 1,
-      fileArr: []
+      fileArr: [],
     })
-    const token = localStorage.getItem("token");
-    axios({
-      headers: {
-        Authorization: token,
-      },
-      method: "get",
-      url: 'http://10.0.1.119:8000/api/sources/'
-        // "http://192.168.2.110:8000/api/sources/"
-        + 2 + "/",
-    })
-      .then((res) => {
-        // 类型2是文件，1是文件夹
-        console.log(res.data);
-
-        if (res.data.type === 1) {
-          const oldPaths = localStorage.getItem('paths');
-          console.log(oldPaths);
-          localStorage.setItem('paths', oldPaths + ',' + res.data.id);
-          console.log(localStorage.getItem('paths'));
-        } else {
-          alert('是否下载？');
-        }
-        _this.setState({
-          isLoading: 0,
-          fileArr: res.data.children
-        })
-        console.log(this.state.fileArr);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-
+    this.ajaxRequest(_this);
   };
 
-  handleContextMenu = (e) => {
-    e.preventDefault();
+  returnBack = () => {
+    this.state.pathStack.pop();
+    this.ajaxRequest(this);
   }
 
-
-  // 页面加载
-  componentDidMount() {
-    // 添加监听，实现右击
-    // 在组件中可以显示（visible=true），点击其它地方或滚动不可显示（设为false）
-    document.addEventListener('contextmenu', this.handleContextMenu);
-    // document.addEventListener('click', this._handleClick);
-    // document.addEventListener('scroll', this._handleScroll);
-
-    // 发送请求
-    const _this = this;
-
-    const userId = localStorage.getItem("source_id");
-    const token = localStorage.getItem("token");
+  ajaxRequest = (_this) => {
+    const token = localStorage.getItem('token');
+    const userId = _this.state.pathStack.pop();
     axios({
       headers: {
         Authorization: token,
       },
       method: "get",
-      url: 'http://10.0.1.119:8000/api/sources/'
-        // "http://192.168.2.110:8000/api/sources/"
+      url:
+        //  'http://10.0.1.119:8000/api/sources/'
+        "http://192.168.2.110:8000/api/sources/"
         + userId + "/",
     })
       .then((res) => {
-        // console.log(res.data);
         _this.setState({
           isLoading: 0,
           fileArr: res.data.children
         })
+        this.state.pathStack.push(userId);
       })
       .catch((err) => {
         console.log(err);
       });
+  }
+
+  // --------------------------------------------  页面加载  ----------------------------------------------
+  componentDidMount() {
+    // 发送请求
+    const _this = this;
+    const token = localStorage.getItem("token");
+    this.ajaxRequest(_this);
   }
 
   componentDidUpdate() {
     // console.log("重新render");
   }
 
+  //  -------------------------------------------  渲染组件 ---------------------------------------------
   render() {
     if (this.state.isLoading) {
       return (
         <>isLoading...</>
       )
     } else {
-
       const { collapsed } = this.state;
       const { visible } = this.state;
       return (
         <Layout style={{ minHeight: "100vh" }}>
-          {/* <div className="hint">
-            <span><CloseOutlined /></span>
-            <input name="fileName" placeholder="请输入新建的文件夹名称"></input>
-            <button>添加文件夹</button>
-          </div> */}
-
           <Sider collapsible collapsed={collapsed} onCollapse={this.onCollapse}>
             <div className="logo" />
             <Menu theme="dark" defaultSelectedKeys={["1"]} mode="inline">
@@ -166,27 +128,12 @@ class IuseIndex extends React.Component {
           </Sider>
           <Layout className="site-layout">
             <Header className="site-layout-background" style={{ padding: '10px 30px', display: 'flex' }} >
-              <AddFile fileCount={this.state.filecount} />
+              <AddFile fileCount={this.state.filecount} ajaxRequest={this.ajaxRequest} _this={this} />
             </Header>
             <Content style={{ margin: "0 16px" }}>
-              <Breadcrumb style={{ margin: "16px 0" }}>
-                {/* 面包屑 <Breadcrumb.Item></Breadcrumb.Item> */}
-                {
-                  this.state.fileArr.map((item, index) => {
-                    // console.log('type = ' + item.type, 'id = ' + item.id, 'index = ' + index);
-                    const breadPaths = localStorage.getItem('paths');
-                    if (breadPaths) {
-                      // console.log([breadPaths]);
-                      if ([breadPaths].length > 1) {
-
-                      }
-                      return (
-                        <Breadcrumb.Item key={index} className="breadItem">{breadPaths[index]}</Breadcrumb.Item>
-                      )
-                    }
-                  })
-                }
-              </Breadcrumb>
+              {this.state.pathStack.length === 1 ? <div style={{ height: '70px' }}></div> :
+                <button onClick={this.returnBack}>返回上一层</button>
+              }
               <div
                 className="site-layout-background"
                 style={{
@@ -198,10 +145,8 @@ class IuseIndex extends React.Component {
               >
                 {/* http://10.0.1.119:8000/api/sources/id/create_dir/ 用post请求 代表文件夹名 这个id是当前文件夹的id */}
                 {this.state.fileArr.map((item, index) => {
-                  // console.log(item);
-                  // console.log(this.state);
                   return (
-                    <div key={'div' + item.id} className="every-file" onClick={this.handleClick} onContextMenu={e => { this.handleContextMenu(e) }}>
+                    <div key={'div' + item.id} className="every-file" onClick={() => this.handleClick(item.id)} >
                       <PerFile
                         key={item.id}
                         fileName={item.name}
@@ -227,11 +172,6 @@ class IuseIndex extends React.Component {
       );
     }
   };
-
-  // 卸载组件
-  componentWillUnmount() {
-    document.removeEventListener();
-  }
 }
 
 export default IuseIndex;
