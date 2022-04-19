@@ -23,8 +23,8 @@ class NormalLoginForm extends React.Component {
 
     axios
       .post(
-        // 'http://10.0.1.119:8000/api/accounts/login/',
-        "http://192.168.2.110:8000/api/accounts/login/",
+        'http://10.0.1.119:8000/api/accounts/login/',
+        // "http://192.168.2.110:8000/api/accounts/login/",
         inputInfo
       )
       .then((res) => {
